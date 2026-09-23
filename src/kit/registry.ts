@@ -17,6 +17,9 @@ function folderOf(path: string): string {
 }
 
 const ALL: RenderModule[] = Object.entries(MODULES)
+  // Un dossier préfixé d'un souligné est un point de départ à copier, pas un
+  // rendu à présenter : `_template` ne doit pas encombrer la galerie.
+  .filter(([path]) => !folderOf(path).startsWith("_"))
   .map(([path, loaded]) => {
     const module = loaded.default;
     const folder = folderOf(path);

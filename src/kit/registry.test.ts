@@ -19,3 +19,8 @@ test("les modules sont triés par titre, pour un ordre de galerie stable", () =>
 
   expect(titles).toEqual([...titles].sort((a, b) => a.localeCompare(b, "fr")));
 });
+
+test("le template de scaffolding n'apparaît pas dans la galerie", () => {
+  // `_template` est un point de départ à copier, pas un rendu à présenter.
+  expect(listRenderModules().map((module) => module.id)).not.toContain("_template");
+});
