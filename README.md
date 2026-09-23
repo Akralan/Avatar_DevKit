@@ -1,167 +1,112 @@
-# MyTwin Avatar
+# MyTwin Avatar DevKit
 
-Photo → avatar 3D. **Deux services découplés**, backend sans état, avatars
-stockés sur l'appareil de l'utilisateur (aucune base de données).
+Un atelier pour écrire des rendus 3D d'un corps humain. Vous clonez, vous lancez,
+vous avez un effet à l'écran. Ensuite vous écrivez le vôtre.
 
-```
-frontend/  ── Scalingo   : sert la page + assets client ; le navigateur orchestre
-backend/   ── Scaleway   : conteneur serverless, 3 endpoints stateless (compute)
-```
-
-Le navigateur est le chef d'orchestre : il lance la génération du corps (Meshy,
-proxifiée par le backend), capture le visage (MediaPipe FaceLandmarker en WASM),
-demande la greffe au backend, puis **stocke l'avatar dans IndexedDB** (galerie).
-Aucun état côté serveur : pas de DB, pas de disque persistant, pas de thread.
-
-## Backend (`backend/`) — Scaleway Serverless Container
-
-Endpoints (sans état) :
-
-| Méthode | Route | Rôle |
-|---|---|---|
-| `POST` | `/body` | détourage (rembg) + création tâche Meshy → `{task_id}` |
-| `GET`  | `/body/status?task_id=` | proxy court vers Meshy → `{status, progress}` |
-| `POST` | `/graft` | `face.glb` + `task_id` → pipeline CPU → renvoie `avatar.glb` |
-| `GET`  | `/healthz` | état |
-
-Le pipeline de greffe (`pipeline/`) est **Python CPU pur** (numpy/scipy/trimesh/
-opencv, rasteriseur logiciel — pas de GPU, pas de Blender). `libgl1`/`libglib2.0-0`
-requis au runtime (opencv). La greffe est synchrone (~1 min CPU).
-
-Variables : `MESHY_API_KEY`, `MESHY_*`, `REMOVE_BG`, `REMBG_MODEL`, `CORS_ORIGIN`
-(origine du frontend, défaut `*` pour la démo). Les modes test (greffer
-`corps.glb`/`visage.glb` sans appeler Meshy) sont pilotés **par requête** via les
-champs `local_body`/`local_face` — exposés en toggles dans les réglages du
-frontend (désactivés par défaut), plus de variable d'env.
-
-Build & run local (Docker) :
+## Démarrer
 
 ```bash
-cd backend
-docker build -t mytwin-api .
-docker run -p 8080:8080 -e MESHY_API_KEY=... -e CORS_ORIGIN=https://<frontend> mytwin-api
+git clone <url> mytwin-avatar-devkit
+cd mytwin-avatar-devkit
+cp .env.example .env     # l'URL du backend vous est fournie
+npm install
+npm run dev
 ```
 
-Déploiement sur Scaleway (Container Registry → Serverless Container). Remplacer
-`<namespace>` par le nom du namespace du registre ; région `fr-par` ici.
+Ouvrez **http://localhost:5173** — quatre rendus vous attendent.
+
+Rien d'autre à installer : pas de Docker, pas de clé d'API, pas de compte. Le
+`.env` ne sert qu'à la génération d'avatar depuis une photo ; les rendus
+fonctionnent sans lui, sur les corps livrés avec le dépôt.
+
+## Créer le vôtre
 
 ```bash
-# 0) (une fois) créer un namespace de registre et récupérer une clé API Scaleway.
-#    Login Docker au registre (user = "nologin", password = clé secrète Scaleway).
-echo "$SCW_SECRET_KEY" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
-
-# 1) Build en amd64 (Scaleway tourne en x86_64 ; --platform indispensable si build
-#    depuis un Mac ARM, inoffensif sinon). Tag = chemin complet dans le registre.
-cd backend
-docker build --platform linux/amd64 -t rg.fr-par.scw.cloud/<namespace>/mytwin-api:latest .
-
-# 2) Push de l'image
-docker push rg.fr-par.scw.cloud/<namespace>/mytwin-api:latest
-
-# 3) Pointer le Serverless Container sur la nouvelle image (ou via la console).
-scw container container update <container-id> \
-    registry-image=rg.fr-par.scw.cloud/<namespace>/mytwin-api:latest
+npm run new:render mon-effet
 ```
 
-Réglages recommandés du Serverless Container :
+Ouvrez `src/renders/mon-effet/shaders/effect.frag.glsl` et changez une ligne.
+L'écran se met à jour sans recharger, sans perdre vos réglages.
 
-| Réglage | Valeur | Pourquoi |
-|---|---|---|
-| Port | `8080` | port exposé par le `Dockerfile` |
-| RAM / vCPU | **3072 MB** / **~2500 mVCPU** | le blending de texture HD + rembg + mediapipe peut dépasser 2 Go → OOM sinon ; 1024 MB = échec quasi certain |
-| Concurrency | **1** | une greffe par instance (2 greffes simultanées se font OOM) ; laisser Scaleway scaler en plusieurs instances |
-| Timeout requête | **300 s** | la greffe est synchrone (~1 min CPU) ; couvrir cold start + greffe |
-| Privacy | **Public** | le navigateur appelle l'API directement ; un conteneur privé bloque tout |
-| Variables | `MESHY_API_KEY`, `CORS_ORIGIN=https://<frontend>` | clé Meshy serveur ; origine autorisée (voir Dépannage) |
+Le dossier que vous venez de créer **contient déjà un effet qui tourne**. Vous
+ne partez jamais d'un écran noir : vous déformez quelque chose de vivant.
 
-Scale-to-zero : la 1re requête après inactivité paie le cold start (chargement
-rembg + mediapipe). Le tag `:latest` étant mutable, un `docker push` suivi d'un
-redéploiement du conteneur suffit pour livrer une nouvelle version.
+## Ce qu'il y a dans le dépôt
 
-En pratique, ce build/push est **automatisé par GitHub Actions**
-(`.github/workflows/deploy-backend.yml`) : à chaque push sur `main` touchant
-`scalingo/backend/**`, les runners GitHub construisent l'image et la poussent sur
-le registre (pas d'upload depuis une machine locale). Seul secret requis :
-`SCW_SECRET_KEY` (clé API Scaleway dédiée, droits limités au Container Registry).
-Les `.glb` de test sont versionnés (exception dans `.gitignore`) pour que la CI
-puisse les embarquer. Le redéploiement du conteneur reste manuel (ou via le bloc
-optionnel commenté dans le workflow, une fois le conteneur créé).
+```
+src/
+├── kit/        ← le socle. Vous n'avez pas à l'ouvrir.
+├── renders/    ← votre terrain de jeu. Un dossier = un rendu.
+└── studio/     ← les écrans : galerie, atelier, sujets.
+public/models/  ← les corps livrés avec le dépôt
+backend/        ← le pipeline photo → avatar, hors de votre périmètre
+docs/           ← les guides
+```
 
-## Frontend (`frontend/`) — Scalingo
+**La seule frontière qui compte est `kit/` ↔ `renders/`.** Le kit tient tout ce
+qui est pénible et se répète : chargement du corps, cadrage de la caméra,
+rotation au doigt, boucle de rendu, redimensionnement, libération de la mémoire
+GPU. Un dossier de `renders/` ne contient que ce qui fait l'effet.
 
-Flask minimal (Flask + gunicorn) : sert `index.html`, `models/face_landmarker.task`
-(asset client) et injecte l'URL du backend via `API_BASE`. Aucun secret, aucun
-compute. La galerie et le parcours sont 100 % côté navigateur.
+## Le contrat d'un rendu
 
-Variables :
+Un rendu est un dossier qui exporte un seul objet :
 
-| Variable | Rôle | Prod |
-|---|---|---|
-| `API_BASE` | URL du backend Scaleway (`https://…scw.cloud`) que le navigateur appelle | **requise** ; doit inclure `https://` sinon la CSP bloque |
-| `PROXY_API` | **dev uniquement** : relaie les appels en same-origin (évite CORS/HTTPS local) | **laisser vide** |
-| `PORT` | port d'écoute | **ne pas définir** : Scalingo l'injecte |
+```ts
+export default {
+  id: "mon-effet",          // doit être le nom du dossier
+  title: "Mon effet",
+  author: "Votre nom",
+  description: "Ce que ça fait, en une phrase.",
 
-Aucun secret côté frontend (la clé Meshy est 100 % côté backend).
+  defaultConfig: { vitesse: 0.35, couleur: "#79f0d1" },
 
-Déploiement Scalingo (monorepo : seul `frontend/` est poussé, remis à la racine
-via `git subtree`, donc pas besoin de `PROJECT_DIR`) :
+  // Une ligne ici = un champ dans le panneau de l'atelier.
+  controls: [
+    { kind: "slider", key: "vitesse", label: "Vitesse", min: 0, max: 2, step: 0.01 },
+    { kind: "color", key: "couleur", label: "Couleur" },
+  ],
+
+  create({ renderer, camera, subject }) {
+    // `subject` est déjà chargé, centré et cadré.
+    return { frame, setConfig, resize, dispose };
+  },
+} satisfies RenderModule<MaConfig>;
+```
+
+Le kit **n'appelle jamais `renderer.render()` lui-même**. C'est votre `frame()`
+qui produit l'image, comme vous voulez — plusieurs passes, vos propres cibles de
+rendu, du post-traitement. Il n'y a pas de plafond de verre au bout de trois
+semaines.
+
+Types de contrôles disponibles : `slider`, `color`, `toggle`, `select`, et
+`group` pour replier une section.
+
+## Partager un réglage
+
+L'atelier écrit vos réglages dans l'URL. « Copier le lien » vous donne une
+adresse qui reproduit exactement ce que vous avez sous les yeux, sujet compris.
+« Copier la config » sort le JSON, prêt à coller dans `defaultConfig` quand un
+réglage est validé.
+
+## Les guides
+
+| Fichier | Quand le lire |
+|---|---|
+| [docs/creer-un-rendu.md](docs/creer-un-rendu.md) | Votre premier rendu, pas à pas |
+| [docs/anatomie-d-un-rendu.md](docs/anatomie-d-un-rendu.md) | Comment la technique fonctionne, et les pièges |
+| [docs/pipeline-avatar.md](docs/pipeline-avatar.md) | Comment une photo devient un corps 3D |
+
+## Les commandes
 
 ```bash
-# depuis la racine du repo, sur la branche main
-git subtree push --prefix scalingo/frontend scalingo master
+npm run dev              # serveur de développement
+npm run build            # vérification des types + build de production
+npm test                 # la suite de tests
+npm run new:render <nom> # créer un rendu
 ```
 
-`scalingo` = remote `git@ssh.osc-fr1.scalingo.com:demo-mytwin-avatar.git`.
-Configurer `API_BASE` sur l'app (`scalingo --app demo-mytwin-avatar env-set
-API_BASE=…`) avant le premier parcours complet.
+## Ce que le devkit ne fait pas
 
-## Développement local (2 process)
-
-```bash
-# 1) backend
-cd backend && PORT=5001 python api.py
-
-# 2) frontend (pointe sur le backend local)
-cd frontend && API_BASE=http://localhost:5001 PORT=8000 python app.py
-```
-
-Ouvre http://127.0.0.1:8000 (la caméra exige un contexte sécurisé : `127.0.0.1`
-est accepté ; pour un test mobile via IP réseau, servir en HTTPS).
-
-Modes test : dans **Réglages → Mode test**, active « Corps de test » (greffe
-`corps.glb`, sans Meshy) et/ou « Visage de test » (greffe `visage.glb`, ignore le
-visage capturé). Désactivés par défaut ; nécessite que `corps.glb`/`visage.glb`
-soient présents côté backend.
-
-## Dépannage
-
-- **Frontend « Hors ligne » / « Failed to fetch » alors que `curl <backend>/healthz`
-  répond** : le navigateur est bloqué là où curl ne l'est pas → **CORS** ou **CSP**.
-  Ouvrir la console (F12) :
-  - `... blocked by CORS policy` → `CORS_ORIGIN` du backend ne matche pas l'origine
-    du frontend **au caractère près**. Pièges : **slash final**
-    (`https://x.scalingo.io/` ≠ `https://x.scalingo.io`), `http` vs `https`, ou
-    l'URL du backend mise par erreur. Débloquer avec `CORS_ORIGIN=*` puis
-    redéployer ; durcir ensuite avec l'URL exacte du frontend.
-  - `Refused to connect ... Content Security Policy ... connect-src` → `API_BASE`
-    du frontend mal formée (souvent le `https://` manquant). La corriger et
-    redéployer le frontend.
-- **Le conteneur ne se met pas à jour après un nouveau `:latest`** : un push d'image
-  ne redéploie PAS un conteneur en place. Cliquer *Deploy* dans la console, ou
-  activer le bloc auto-redeploy commenté dans `.github/workflows/deploy-backend.yml`
-  (nécessite `SCW_ACCESS_KEY`, `SCW_DEFAULT_PROJECT_ID` et le `CONTAINER_ID`).
-- **Push CI en échec** : au *login* → secret `SCW_SECRET_KEY` absent/erroné ; au
-  *push* → le namespace de registre (`fr-par`) n'existe pas encore.
-- **Caméra inactive** : elle exige un contexte sécurisé (HTTPS, ou `127.0.0.1` en
-  local). Vérifier aussi l'en-tête `Permissions-Policy: camera=(self)`.
-
-## Notes démo
-
-- **Poids des avatars** : un avatar fait ~60 Mo (corps haute résolution + textures).
-  IndexedDB tient pour quelques avatars ; peut être purgé par le navigateur sous
-  pression de stockage (surtout iOS). D'où le bouton **Télécharger** (copie durable).
-  Levier d'allègement : Meshy `should_remesh` + texture réduite.
-- **Protection crédits Meshy** : volontairement absente (démo). À rajouter (BFF /
-  gate) avant une mise en prod ouverte.
-- **Cold start** : la 1re requête après inactivité charge rembg+mediapipe
-  (~10-30 s). Mettre `min-scale=1` pendant une démo live si gênant.
+Pas de compte, pas de galerie partagée, pas de sauvegarde en ligne. Tout vit sur
+votre machine, et votre travail part sur votre dépôt à vous.
