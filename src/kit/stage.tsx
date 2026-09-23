@@ -8,6 +8,9 @@ import type { RenderInstance, RenderModule, Subject } from "./types";
  *  distingue, sur des machines qui rament déjà. */
 const MAX_PIXEL_RATIO = 2;
 
+const SNAPSHOT_FORMAT = "image/webp";
+const SNAPSHOT_QUALITY = 0.8;
+
 export function useReduceMotion(): boolean {
   const [reduce, setReduce] = useState(
     () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
@@ -32,8 +35,13 @@ export interface RenderStageHandle {
    * chemin entre les deux.
    */
   runAction(id: string): void;
-  /** Le canvas du rendu, pour en tirer une vignette de galerie. */
-  getCanvas(): HTMLCanvasElement | null;
+  /**
+   * Rend une image et la lit dans la foulée. Le buffer de dessin WebGL est vidé
+   * dès que le navigateur compose : lire le canvas plus tard rendrait une image
+   * vide. Rendre puis lire dans la même tâche est la seule façon d'obtenir une
+   * vignette sans imposer `preserveDrawingBuffer` à tous les rendus.
+   */
+  snapshot(): string | null;
 }
 
 interface RenderStageProps<C> {
@@ -56,6 +64,17 @@ export function RenderStage<C>({
   const [error, setError] = useState<string | null>(null);
   const reduceMotion = useReduceMotion();
 
+  // Le sujet est lu par référence : le contexte WebGL n'a aucune raison d'être
+  // reconstruit quand on change de corps, tant que le module sait s'adapter.
+  const subjectRef = useRef(subject);
+  const appliedSubjectRef = useRef<Subject | null>(null);
+  const renderFrameRef = useRef<(() => void) | null>(null);
+  const applySizeRef = useRef<(() => void) | null>(null);
+
+  // Incrémenté quand un module ne sait pas changer de sujet en place : il faut
+  // alors le reconstruire.
+  const [rebuildToken, setRebuildToken] = useState(0);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -65,7 +84,15 @@ export function RenderStage<C>({
         if (!action || !instance) return;
         action.run(instance as unknown as RenderInstance<unknown>);
       },
-      getCanvas: () => canvasRef.current,
+
+      snapshot: () => {
+        const canvas = canvasRef.current;
+        const renderFrame = renderFrameRef.current;
+        if (!canvas || !renderFrame) return null;
+
+        renderFrame();
+        return canvas.toDataURL(SNAPSHOT_FORMAT, SNAPSHOT_QUALITY);
+      },
     }),
     [module],
   );
@@ -75,6 +102,7 @@ export function RenderStage<C>({
     if (!canvas) return;
 
     setError(null);
+    const subjectAtCreation = subjectRef.current;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
@@ -89,7 +117,7 @@ export function RenderStage<C>({
 
     let instance: RenderInstance<C>;
     try {
-      instance = module.create({ canvas, renderer, camera, subject });
+      instance = module.create({ canvas, renderer, camera, subject: subjectAtCreation });
     } catch (cause) {
       // Libérer explicitement : un create() qui jette laisserait un contexte
       // orphelin, et les navigateurs en plafonnent le nombre simultané.
@@ -102,6 +130,7 @@ export function RenderStage<C>({
     }
 
     instanceRef.current = instance;
+    appliedSubjectRef.current = subjectAtCreation;
     instance.setConfig(config);
 
     let frameId: number | null = null;
@@ -111,7 +140,7 @@ export function RenderStage<C>({
       const delta = clock.getDelta();
       elapsed += delta;
       orbit.update(delta);
-      subject.mixer?.update(reduceMotion ? 0 : delta);
+      subjectRef.current.mixer?.update(reduceMotion ? 0 : delta);
       instance.frame({ delta, elapsed, rotation: orbit.rotation, reduceMotion });
     };
 
@@ -128,9 +157,12 @@ export function RenderStage<C>({
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(clientWidth, clientHeight, false);
       camera.aspect = clientWidth / clientHeight;
-      frameCamera(camera, subject.size);
+      frameCamera(camera, subjectRef.current.size);
       instance.resize(clientWidth, clientHeight, pixelRatio);
     };
+
+    renderFrameRef.current = renderFrame;
+    applySizeRef.current = applySize;
 
     applySize();
     // Une image même à l'arrêt : sans elle, un canvas monté hors viewport
@@ -164,17 +196,38 @@ export function RenderStage<C>({
       orbit.dispose();
       instance.dispose();
       instanceRef.current = null;
+      appliedSubjectRef.current = null;
+      renderFrameRef.current = null;
+      applySizeRef.current = null;
       renderer.dispose();
     };
-    // `config` est volontairement absent : il est poussé par l'effet suivant,
-    // et le remettre ici reconstruirait tout le contexte WebGL à chaque cran
-    // de curseur.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [module, subject, reduceMotion]);
+    // `config` et `subject` sont volontairement absents : le premier est poussé
+    // par l'effet suivant, le second par celui d'après. Les remettre ici
+    // reconstruirait tout le contexte WebGL à chaque cran de curseur.
+  }, [module, reduceMotion, rebuildToken]);
 
   useEffect(() => {
     instanceRef.current?.setConfig(config);
   }, [config]);
+
+  useEffect(() => {
+    subjectRef.current = subject;
+
+    const instance = instanceRef.current;
+    if (!instance || appliedSubjectRef.current === subject) return;
+    appliedSubjectRef.current = subject;
+
+    if (instance.onSubjectChange) {
+      instance.onSubjectChange(subject);
+      // Le cadrage dépend des dimensions du sujet : un corps plus grand ou plus
+      // large sort du cadre si on ne le rejoue pas.
+      applySizeRef.current?.();
+      return;
+    }
+
+    // Un module qui ne sait pas changer de sujet en place est reconstruit.
+    setRebuildToken((token) => token + 1);
+  }, [subject]);
 
   if (error) {
     return (

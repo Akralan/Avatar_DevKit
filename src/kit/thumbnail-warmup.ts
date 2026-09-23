@@ -3,7 +3,7 @@ import { frameCamera } from "./framing";
 import { loadSubject } from "./load-subject";
 import { getRenderModule } from "./registry";
 import { DEFAULT_SUBJECT_ID, listSubjects } from "./subjects";
-import { captureThumbnail, listMissingThumbnails } from "./thumbnails";
+import { listMissingThumbnails, storeThumbnail, THUMBNAIL_FORMAT, THUMBNAIL_QUALITY } from "./thumbnails";
 
 const SIZE = 480;
 
@@ -12,13 +12,29 @@ const SIZE = 480;
 const WARMUP_FRAMES = [5, 5];
 
 /**
- * Génère les vignettes manquantes **une par une dans un seul contexte WebGL
- * réutilisé**. Un canvas par tuile est exclu : les navigateurs plafonnent à
- * une poignée de contextes simultanés, et la galerie en demanderait autant
- * qu'elle a de rendus.
+ * Remet le renderer dans un état neutre entre deux modules.
  *
- * Aucune erreur ne remonte : un module qui ne compile pas doit laisser sa
- * tuile sans image, pas casser la galerie des autres.
+ * Le préchauffage réutilise **un seul** contexte WebGL pour tous les rendus, et
+ * un module a parfaitement le droit de configurer le renderer à sa guise :
+ * `hologram` y pose un tone mapping AgX et une exposition basse. Sans cette
+ * remise à zéro, les vignettes des modules rendus ensuite sortiraient sombres
+ * et délavées, sans que rien ne le signale.
+ */
+export function resetRendererState(renderer: THREE.WebGLRenderer): void {
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.toneMappingExposure = 1;
+  renderer.setClearColor(0x000000, 0);
+  renderer.setRenderTarget(null);
+}
+
+/**
+ * Génère les vignettes manquantes **une par une dans un seul contexte WebGL
+ * réutilisé**. Un canvas par tuile est exclu : les navigateurs plafonnent à une
+ * poignée de contextes simultanés, et la galerie en demanderait autant qu'elle
+ * a de rendus.
+ *
+ * Aucune erreur ne remonte : un module qui ne compile pas doit laisser sa tuile
+ * sans image, pas casser la galerie des autres.
  */
 export async function warmMissingThumbnails(): Promise<void> {
   const missing = await listMissingThumbnails();
@@ -47,8 +63,10 @@ export async function warmMissingThumbnails(): Promise<void> {
       const module = getRenderModule(id);
       if (!module) continue;
 
-      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      resetRendererState(renderer);
+
       try {
+        const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
         const instance = module.create({ canvas, renderer, camera, subject });
         instance.setConfig(module.defaultConfig);
 
@@ -63,12 +81,18 @@ export async function warmMissingThumbnails(): Promise<void> {
           instance.frame({ delta, elapsed, rotation: 0, reduceMotion: false });
         }
 
-        await captureThumbnail(id, canvas);
+        // Lu immédiatement après le rendu, dans la même tâche : le buffer de
+        // dessin est vidé dès que le navigateur compose.
+        const dataUrl = canvas.toDataURL(THUMBNAIL_FORMAT, THUMBNAIL_QUALITY);
         instance.dispose();
+
+        await storeThumbnail(id, dataUrl);
       } catch {
         // Un rendu cassé perd sa vignette, pas la galerie.
       }
     }
+  } catch {
+    // Sujet illisible : pas de vignettes, mais rien ne casse.
   } finally {
     renderer.dispose();
   }

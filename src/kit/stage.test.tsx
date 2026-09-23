@@ -237,9 +237,57 @@ test("une action inconnue est ignorée sans jeter", () => {
   expect(() => ref.current?.runAction("nexistepas")).not.toThrow();
 });
 
-test("le stage prête son canvas, pour que la galerie puisse en tirer une vignette", () => {
-  const ref = createRef<RenderStageHandle>();
-  render(<RenderStage ref={ref} module={fakeModule()} subject={fakeSubject()} config={{}} />);
 
-  expect(ref.current?.getCanvas()).toBe(document.querySelector("canvas"));
+test("prendre une vignette rend une image juste avant de lire le canvas", () => {
+  // Le buffer de dessin WebGL est vidé dès que le navigateur compose : lire le
+  // canvas plus tard rend une image vide. La capture doit donc rendre puis lire,
+  // dans la même tâche.
+  const frame = vi.fn();
+  const ref = createRef<RenderStageHandle>();
+  render(
+    <RenderStage
+      ref={ref}
+      module={fakeModule({
+        create: () => ({ frame, setConfig: vi.fn(), resize: vi.fn(), dispose: vi.fn() }),
+      })}
+      subject={fakeSubject()}
+      config={{}}
+    />,
+  );
+
+  const canvas = document.querySelector("canvas")!;
+  canvas.toDataURL = vi.fn(() => "data:image/webp;base64,ZZZZ");
+  const avant = frame.mock.calls.length;
+
+  const vignette = ref.current?.snapshot();
+
+  expect(frame.mock.calls.length).toBe(avant + 1);
+  expect(vignette).toBe("data:image/webp;base64,ZZZZ");
+  expect(vi.mocked(canvas.toDataURL).mock.invocationCallOrder[0]).toBeGreaterThan(
+    frame.mock.invocationCallOrder.at(-1)!,
+  );
+});
+
+test("changer de sujet prévient l'instance au lieu de tout reconstruire", () => {
+  // Le contrat annonce `onSubjectChange` et les quatre modules l'implémentent :
+  // s'il n'est jamais appelé, un contributeur qui s'y fie débogue dans le vide.
+  const onSubjectChange = vi.fn();
+  const dispose = vi.fn();
+  const instance = {
+    frame: vi.fn(),
+    setConfig: vi.fn(),
+    resize: vi.fn(),
+    dispose,
+    onSubjectChange,
+  };
+  const module = fakeModule({ create: () => instance });
+
+  const { rerender } = render(
+    <RenderStage module={module} subject={fakeSubject()} config={{}} />,
+  );
+  const autre = { ...fakeSubject(), id: "rubens", label: "Corps réel" };
+  rerender(<RenderStage module={module} subject={autre} config={{}} />);
+
+  expect(onSubjectChange).toHaveBeenCalledWith(autre);
+  expect(dispose).not.toHaveBeenCalled();
 });

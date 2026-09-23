@@ -19,3 +19,6 @@ mytwin-health-landing/
 
 # Runtime WASM de MediaPipe, recopié depuis node_modules au postinstall.
 public/mediapipe/
+
+# Cache incrémental de TypeScript : régénéré à chaque build.
+tsconfig.tsbuildinfo
