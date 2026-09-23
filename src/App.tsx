@@ -1,4 +1,6 @@
 import { NavLink, Route, Routes } from "react-router";
+import { GalleryPage } from "./studio/gallery-page";
+import { SubjectsPage } from "./studio/subjects-page";
 import { WorkshopPage } from "./studio/workshop-page";
 import { DebugFacePage } from "./studio/debug-face-page";
 
@@ -16,9 +18,9 @@ export function App() {
 
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<p>Galerie des rendus</p>} />
+          <Route path="/" element={<GalleryPage />} />
           <Route path="/render/:id" element={<WorkshopPage />} />
-          <Route path="/sujets" element={<p>Sujets</p>} />
+          <Route path="/sujets" element={<SubjectsPage />} />
           <Route path="/debug/face" element={<DebugFacePage />} />
         </Routes>
       </main>
