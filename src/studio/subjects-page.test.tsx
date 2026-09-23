@@ -1,6 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { SubjectsPage } from "./subjects-page";
+import { vi } from "vitest";
+
+// Les aperçus se rendent en WebGL, absent de jsdom : on fournit le résultat.
+vi.mock("../kit/subject-thumbnails", () => ({
+  getSubjectThumbnail: async () => "data:image/webp;base64,APERCU",
+  warmSubjectThumbnails: async () => {},
+}));
+
+const { SubjectsPage } = await import("./subjects-page");
 
 function renderPage() {
   render(
@@ -31,4 +39,21 @@ test("choisir un sujet ouvre un atelier sur ce sujet", async () => {
   const liens = await screen.findAllByRole("link", { name: /ouvrir un atelier/i });
 
   expect(liens[0]).toHaveAttribute("href", "/render/wireframe?s=male_body");
+});
+
+test("un aperçu du corps est affiché, pas un cadre vide", async () => {
+  // Sans image, on ne voit littéralement pas les sujets : deux rectangles gris.
+  renderPage();
+
+  const apercus = await screen.findAllByRole("img");
+
+  expect(apercus.length).toBeGreaterThanOrEqual(2);
+});
+
+test("le troisième emplacement est annoncé, même avant que la génération existe", async () => {
+  // Le laisser absent fait croire à une panne ; un bouton mort fait pire.
+  renderPage();
+
+  expect(await screen.findByText("Le vôtre")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /générer/i })).not.toBeInTheDocument();
 });
