@@ -747,3 +747,68 @@ a.tile:hover {
 .wizard-test input {
   accent-color: var(--accent);
 }
+
+.subject-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.subject-actions button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.subject-actions button:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Confirmation d'une suppression définitive. */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 0.6);
+}
+
+.confirm {
+  max-width: 420px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.confirm p {
+  margin: 0 0 16px;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-actions button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: none;
+  padding: 6px 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.confirm-actions button.is-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
