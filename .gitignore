@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.env
+.env.local
+.superpowers/
+__pycache__/
+*.pyc
+/tmp/
+
+# Dépôt distinct, simplement posé dans ce dossier.
+mytwin-health-landing/
+
+# Aucun GLB généré n'entre dans le dépôt. Les sujets livrés avec le devkit et
+# les modèles de test du backend, si : sans eux, un clone n'a rien à afficher.
+*.glb
+!backend/corps.glb
+!backend/visage.glb
+!public/models/*.glb
