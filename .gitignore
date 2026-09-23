@@ -16,3 +16,6 @@ mytwin-health-landing/
 !backend/corps.glb
 !backend/visage.glb
 !public/models/*.glb
+
+# Runtime WASM de MediaPipe, recopié depuis node_modules au postinstall.
+public/mediapipe/

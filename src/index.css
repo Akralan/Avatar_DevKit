@@ -87,3 +87,49 @@ select {
   flex: 1;
   min-height: 0;
 }
+
+/* Page de vérification MediaPipe (/debug/face) — outillage, pas produit. */
+.debug-face {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.debug-face h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.debug-face-hint {
+  margin: 0;
+  color: var(--ink-dim);
+}
+
+.debug-face-video {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--bg-sunken);
+  transform: scaleX(-1);
+}
+
+.debug-face-status {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+}
+
+.debug-face-status[data-step="échec"] {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.debug-face-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+}

@@ -8,9 +8,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "new:render": "node scripts/new-render.mjs"
+    "new:render": "node scripts/new-render.mjs",
+    "postinstall": "node scripts/copy-mediapipe-wasm.mjs"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.14",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^7.9.0",
