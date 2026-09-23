@@ -1,5 +1,9 @@
 # MyTwin Avatar DevKit — Plan 1 : le socle et les ateliers
 
+> **Correction, 23/09/2026 :** le deuxième sujet livré (un corps réel scanné)
+> a été retiré avant publication — le dépôt est public, et un scan de corps
+> identifiable n'y a pas sa place. Le devkit ne livre que `male_body`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Un devkit autonome où un contributeur clone, lance `npm run dev`, et obtient un rendu à l'écran en moins de cinq minutes — puis son propre effet en moins d'une heure.

@@ -9,9 +9,6 @@ const module: RenderModule<HologramConfig> = {
   description:
     "Shader de matériau auto-ombré, émissions HDR compressées en AgX puis diffusées par un bloom. Le module qui montre qu'un rendu peut avoir sa propre chaîne de passes.",
 
-  // Fond neutre : le rendu repose sur des émissions, un fond trop clair ou trop
-  // noir en fausse la lecture.
-  background: "#404040",
 
   defaultConfig: {
     preset: "base",

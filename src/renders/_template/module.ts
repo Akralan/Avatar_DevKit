@@ -17,7 +17,6 @@ const module: RenderModule<TemplateConfig> = {
   author: "Votre nom",
   description: "Un dégradé qui remonte le long du sujet. Déformez-le.",
 
-  background: "#0e1116",
 
   defaultConfig: {
     couleurA: "#79f0d1",

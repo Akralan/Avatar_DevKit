@@ -18,11 +18,11 @@ function renderPage() {
   );
 }
 
-test("les deux sujets livrés avec le repo sont présentés", async () => {
+test("le sujet livré avec le repo est présenté", async () => {
   renderPage();
 
   expect(await screen.findByText("male_body")).toBeInTheDocument();
-  expect(await screen.findByText("Corps réel")).toBeInTheDocument();
+
 });
 
 test("un sujet livré n'offre ni suppression ni refonte", async () => {
@@ -47,7 +47,7 @@ test("un aperçu du corps est affiché, pas un cadre vide", async () => {
 
   const apercus = await screen.findAllByRole("img");
 
-  expect(apercus.length).toBeGreaterThanOrEqual(2);
+  expect(apercus.length).toBeGreaterThanOrEqual(1);
 });
 
 test("le troisième emplacement est annoncé, même avant que la génération existe", async () => {

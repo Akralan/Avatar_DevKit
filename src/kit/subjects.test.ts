@@ -1,11 +1,11 @@
 import { DEFAULT_SUBJECT_ID, listSubjects } from "./subjects";
 
-test("les deux sujets livrés sont présents et verrouillés", async () => {
+test("le corps de référence livré est présent et verrouillé", async () => {
   const subjects = await listSubjects();
 
-  expect(subjects).toHaveLength(2);
+  expect(subjects).toHaveLength(1);
+  expect(subjects.map((subject) => subject.id)).toEqual(["male_body"]);
   expect(subjects.every((subject) => subject.locked)).toBe(true);
-  expect(subjects.map((subject) => subject.id)).toEqual(["male_body", "rubens"]);
 });
 
 test("le sujet par défaut est le modèle neutre", async () => {
@@ -15,8 +15,9 @@ test("le sujet par défaut est le modèle neutre", async () => {
   expect(found?.url).toBe("/models/male_body.glb");
 });
 
-test("les deux sujets livrés se déclarent comme tels", async () => {
+test("aucun sujet livré ne pointe vers un corps réel identifiable", async () => {
+  // Le dépôt est public : un scan de corps nommé n'y a pas sa place.
   const subjects = await listSubjects();
 
-  expect(subjects.every((subject) => subject.origin === "livré")).toBe(true);
+  expect(subjects.every((subject) => subject.url.includes("male_body"))).toBe(true);
 });

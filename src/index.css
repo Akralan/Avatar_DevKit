@@ -543,3 +543,12 @@ a.tile:hover {
   border-radius: 6px;
   padding: 3px 8px;
 }
+
+/* Fond des rendus : noir par défaut, pour tous les ateliers et toutes les
+   vignettes. Un module peut le redéfinir via son champ `background`, mais
+   aucun de ceux livrés ne le fait — c'est le rendu qu'on regarde. */
+.workshop,
+.tile-image,
+.subject-preview {
+  background: #000;
+}

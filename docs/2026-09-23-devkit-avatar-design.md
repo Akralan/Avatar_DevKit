@@ -1,5 +1,9 @@
 # MyTwin Avatar DevKit — design
 
+> **Correction, 23/09/2026 :** le deuxième sujet livré (un corps réel scanné)
+> a été retiré avant publication — le dépôt est public, et un scan de corps
+> identifiable n'y a pas sa place. Le devkit ne livre que `male_body`.
+
 > Spec validée le 23/09/2026. Transforme `Avatar_DevKit` en atelier de création
 > de rendus pour l'avatar, destiné à quatre étudiants en école de dev / 3D.
 

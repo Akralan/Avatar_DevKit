@@ -1,7 +1,6 @@
 import type { RenderModule } from "../../kit/types";
 import {
   DEFAULT_TWIN_2D_CONFIG,
-  DOT_MATRIX_BACKGROUND,
   DOT_MATRIX_MODES,
   type Twin2DConfig,
 } from "./config";
@@ -14,7 +13,6 @@ const module: RenderModule<Twin2DConfig> = {
   description:
     "Le sujet quantifié sur une grille alignée à l'écran : dots, barres ou glyphes ASCII. La technique de référence du devkit — deux passes hors écran, jamais un nuage de points.",
 
-  background: DOT_MATRIX_BACKGROUND,
 
   defaultConfig: DEFAULT_TWIN_2D_CONFIG,
 

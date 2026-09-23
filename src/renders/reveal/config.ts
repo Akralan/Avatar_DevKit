@@ -12,7 +12,6 @@
 // `../shader/`, `../dot-matrix/`) : aucun import croisé dans un sens ou dans
 // l'autre, cf. docs/features/twin.md.
 
-export const REVEAL_BACKGROUND = "#f3f6fc";
 
 // Dégradé de la DA. Ces couleurs vivent dans des uniforms WebGL, pas dans du
 // JSX — les tokens Tailwind ne s'appliquent pas ici.

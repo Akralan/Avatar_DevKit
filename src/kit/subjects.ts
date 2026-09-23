@@ -9,20 +9,14 @@ export interface SubjectDescriptor {
 
 export const DEFAULT_SUBJECT_ID = "male_body";
 
-// Les deux sujets livrés garantissent que tout le monde compare ses rendus sur
-// le même corps.
+// Le sujet livré garantit que tout le monde compare ses rendus sur le même
+// corps. Pour en ajouter un : déposer son GLB dans public/models/ et une entrée
+// ici — le dépôt étant public, il doit pouvoir y vivre.
 const SHIPPED: SubjectDescriptor[] = [
   {
     id: "male_body",
     label: "male_body",
     url: "/models/male_body.glb",
-    origin: "livré",
-    locked: true,
-  },
-  {
-    id: "rubens",
-    label: "Corps réel",
-    url: "/models/Rubens_MyTwin.glb",
     origin: "livré",
     locked: true,
   },

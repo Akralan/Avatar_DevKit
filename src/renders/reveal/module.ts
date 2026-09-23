@@ -1,5 +1,4 @@
 import type { RenderModule, RenderInstance } from "../../kit/types";
-import { REVEAL_BACKGROUND } from "./config";
 import { RevealRenderer, type RevealConfig } from "./renderer";
 
 /** L'instance expose `replay()` en plus du contrat : c'est ce que l'action
@@ -15,7 +14,6 @@ const module: RenderModule<RevealConfig> = {
   description:
     "Quatre germes se posent, un front de propagation remplit la silhouette, puis la trame monte en résolution. Le module qui montre comment scénariser un rendu dans le temps.",
 
-  background: REVEAL_BACKGROUND,
 
   defaultConfig: { effectsEnabled: true },
 

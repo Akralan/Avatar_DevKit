@@ -52,9 +52,6 @@ const DOT_COLOR_START = "#79f0d1";
 const DOT_COLOR_END = "#68cfdf";
 const GRID_DOT_COLOR = "#94a3b8";
 
-/** Fond du rendu. Déclaré par le module, pas réglable : c'est une propriété
- *  du rendu, pas un paramètre à explorer. */
-export const DOT_MATRIX_BACKGROUND = "#f3f6fc";
 
 // Réglages validés à l'œil : grille dense, dots petits et doux, silhouette
 // portée par l'ambiant et le contour plutôt que par la lumière rasante, sujet
