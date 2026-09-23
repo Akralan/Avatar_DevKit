@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
+import { deletePersonalSubject, PERSONAL_SUBJECT_ID } from "../kit/avatar/personal-subject";
 import { listRenderModules } from "../kit/registry";
 import { getSubjectThumbnail, warmSubjectThumbnails } from "../kit/subject-thumbnails";
 import { listSubjects, type SubjectDescriptor } from "../kit/subjects";
@@ -7,45 +8,45 @@ import { listSubjects, type SubjectDescriptor } from "../kit/subjects";
 export function SubjectsPage() {
   const [subjects, setSubjects] = useState<SubjectDescriptor[]>([]);
   const [apercus, setApercus] = useState<Record<string, string>>({});
+  const [confirmation, setConfirmation] = useState(false);
   const [premierRendu] = listRenderModules();
 
-  useEffect(() => {
-    let cancelled = false;
+  const charger = useCallback(async () => {
+    const liste = await listSubjects();
+    setSubjects(liste);
 
-    const charger = async () => {
-      const liste = await listSubjects();
-      if (cancelled) return;
-      setSubjects(liste);
+    // Les aperçus manquants se rendent une fois, puis vivent en cache.
+    await warmSubjectThumbnails();
 
-      // Les aperçus manquants se rendent une fois, puis vivent en cache.
-      await warmSubjectThumbnails();
-      if (cancelled) return;
+    const entrees = await Promise.all(
+      liste.map(async (subject) => [subject.id, await getSubjectThumbnail(subject.id)] as const),
+    );
 
-      const entrees = await Promise.all(
-        liste.map(async (subject) => [subject.id, await getSubjectThumbnail(subject.id)] as const),
-      );
-      if (cancelled) return;
-
-      setApercus(
-        Object.fromEntries(entrees.filter((entree): entree is [string, string] => !!entree[1])),
-      );
-    };
-
-    void charger();
-
-    return () => {
-      cancelled = true;
-    };
+    setApercus(
+      Object.fromEntries(entrees.filter((entree): entree is [string, string] => !!entree[1])),
+    );
   }, []);
+
+  useEffect(() => {
+    void charger();
+  }, [charger]);
+
+  const supprimer = async () => {
+    await deletePersonalSubject();
+    setConfirmation(false);
+    await charger();
+  };
+
+  const aUnSujetPersonnel = subjects.some((subject) => subject.id === PERSONAL_SUBJECT_ID);
 
   return (
     <section className="subjects">
       <header className="gallery-head">
         <h1>Sujets</h1>
         <p>
-          Un sujet est un corps entier avec son visage. Le corps versionné avec
-          le dépôt garantit que tout le monde compare ses rendus sur le même
-          modèle ; les corps déposés en local s'ajoutent à la liste.
+          Un sujet est un corps entier avec son visage. Le corps versionné avec le dépôt
+          garantit que tout le monde compare ses rendus sur le même modèle ; les corps
+          déposés en local s'ajoutent à la liste.
         </p>
       </header>
 
@@ -60,6 +61,7 @@ export function SubjectsPage() {
               )}
               {subject.locked && <span className="subject-lock">livré</span>}
             </div>
+
             <div className="subject-body">
               <strong>{subject.label}</strong>
               <span className="subject-origin">
@@ -67,35 +69,77 @@ export function SubjectsPage() {
                   ? "Fourni avec le dépôt"
                   : "Généré sur cet appareil"}
               </span>
-              {premierRendu && (
-                <Link
-                  className="subject-open"
-                  to={`/render/${premierRendu.id}?s=${subject.id}`}
-                >
-                  Ouvrir un atelier
-                </Link>
-              )}
+
+              <div className="subject-actions">
+                {premierRendu && (
+                  <Link
+                    className="subject-open"
+                    to={`/render/${premierRendu.id}?s=${subject.id}`}
+                  >
+                    Ouvrir un atelier
+                  </Link>
+                )}
+
+                {/* Un corps livré ne s'efface pas : il appartient au dépôt, pas
+                    à celui qui l'utilise. */}
+                {!subject.locked && (
+                  <>
+                    <Link className="subject-open" to="/sujets/nouveau">
+                      Refaire
+                    </Link>
+                    <button type="button" onClick={() => setConfirmation(true)}>
+                      Supprimer
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </li>
         ))}
 
-        {/* Le troisième emplacement existe dans la maquette validée. Il est
-            annoncé plutôt qu'absent — un emplacement manquant ferait croire à
-            une panne — mais sans bouton mort : la génération arrive avec le
-            pipeline avatar. */}
-        <li className="subject-slot subject-slot-pending">
-          <div className="subject-preview">
-            <span className="subject-plus">+</span>
-          </div>
-          <div className="subject-body">
-            <strong>Le vôtre</strong>
-            <span className="subject-origin">
-              Votre corps, généré depuis une photo. Un seul, sur cet appareil.
-            </span>
-            <span className="subject-soon">Arrive avec le pipeline avatar</span>
-          </div>
-        </li>
+        {!aUnSujetPersonnel && (
+          <li className="subject-slot subject-slot-pending">
+            <div className="subject-preview">
+              <span className="subject-plus">+</span>
+            </div>
+            <div className="subject-body">
+              <strong>Le vôtre</strong>
+              <span className="subject-origin">
+                Votre corps, depuis une photo. Un seul, sur cet appareil.
+              </span>
+              <div className="subject-actions">
+                <Link className="subject-open" to="/sujets/nouveau">
+                  Générer
+                </Link>
+              </div>
+            </div>
+          </li>
+        )}
       </ul>
+
+      {confirmation && (
+        <div className="confirm-backdrop">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Supprimer votre avatar"
+            className="confirm"
+          >
+            <p>
+              Supprimer votre avatar est <strong>définitif</strong>. Le refaire demande une
+              nouvelle séance photo et environ une minute de calcul.
+            </p>
+            <div className="confirm-actions">
+              <button type="button" onClick={() => setConfirmation(false)}>
+                Annuler
+              </button>
+              <button type="button" className="is-danger" onClick={() => void supprimer()}>
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

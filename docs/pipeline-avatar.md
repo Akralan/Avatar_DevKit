@@ -3,10 +3,8 @@
 Comment une photo devient un corps 3D utilisable comme sujet de rendu, et ce
 qu'il faut savoir du backend qui le fabrique.
 
-> **État :** le backend est en service ; l'écran de génération dans le devkit
-> arrive avec le plan 2 (`docs/2026-09-23-devkit-plan-2-pipeline-avatar.md`).
-> Les deux corps livrés dans `public/models/` suffisent à travailler en
-> attendant.
+> **État :** en service. L'écran de génération vit sur `/sujets/nouveau`.
+> Les corps livrés dans `public/models/` suffisent à travailler sans lui.
 
 ---
 
@@ -126,9 +124,8 @@ mediapipe : 10 à 30 secondes. Fixer `min-scale=1` pendant une démonstration.
 
 **Poids des avatars.** Un avatar fait ~60 Mo (corps haute résolution et
 textures). IndexedDB peut être purgé par le navigateur sous pression de stockage,
-particulièrement sur iOS. Un avatar auquel vous tenez se télécharge — la demande
-de stockage persistant fait partie du plan 2, et n'est de toute façon jamais une
-garantie absolue.
+particulièrement sur iOS. Le devkit demande le stockage persistant au navigateur, mais ce n'est qu'une
+demande. Un avatar auquel vous tenez se télécharge.
 
 ## Crédits Meshy
 

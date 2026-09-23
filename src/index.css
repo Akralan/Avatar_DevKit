@@ -552,3 +552,263 @@ a.tile:hover {
 .subject-preview {
   background: #000;
 }
+
+/* Aperçu 3D du wizard : masque facial, puis avatar greffé. */
+.preview-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  text-align: center;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+}
+
+/* Capture du visage — tout se passe dans le navigateur. */
+.face-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.face-stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-sunken);
+}
+
+.face-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.face-oval {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46%;
+  height: 72%;
+  transform: translate(-50%, -50%);
+  border: 2px dashed var(--ink-dim);
+  border-radius: 50%;
+  transition: border-color 150ms ease;
+}
+
+.face-oval.is-detected {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.face-preview {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+
+.face-hint {
+  margin: 0;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
+.face-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.face-step button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: none;
+  padding: 7px 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.face-step button:disabled {
+  color: var(--ink-dim);
+  cursor: not-allowed;
+}
+
+.face-step button:not(:disabled):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Parcours photo → avatar. */
+.wizard {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.wizard-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wizard-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 8px;
+  border-top: 3px solid var(--line);
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.wizard-steps li.is-current {
+  border-top-color: var(--accent);
+}
+
+.wizard-steps li.is-current strong {
+  color: var(--accent);
+}
+
+.wizard-steps strong {
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.wizard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.wizard-panel > label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.wizard-progress {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.wizard-progress-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.wizard-progress-head strong {
+  color: var(--ink);
+}
+
+.wizard-bar {
+  height: 5px;
+  margin-top: 7px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.wizard-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 300ms ease;
+}
+
+.wizard-test {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.wizard-test input {
+  accent-color: var(--accent);
+}
+
+.subject-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.subject-actions button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.subject-actions button:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Confirmation d'une suppression définitive. */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 0.6);
+}
+
+.confirm {
+  max-width: 420px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.confirm p {
+  margin: 0 0 16px;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-actions button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: none;
+  padding: 6px 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.confirm-actions button.is-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
