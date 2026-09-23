@@ -43,8 +43,9 @@ export function SubjectsPage() {
       <header className="gallery-head">
         <h1>Sujets</h1>
         <p>
-          Un sujet est un corps entier avec son visage. Le corps livré avec le
-          dépôt garantit que tout le monde compare ses rendus sur le même modèle.
+          Un sujet est un corps entier avec son visage. Le corps versionné avec
+          le dépôt garantit que tout le monde compare ses rendus sur le même
+          modèle ; les corps déposés en local s'ajoutent à la liste.
         </p>
       </header>
 

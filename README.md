@@ -17,7 +17,7 @@ Ouvrez **http://localhost:5173** — quatre rendus vous attendent.
 
 Rien d'autre à installer : pas de Docker, pas de clé d'API, pas de compte. Le
 `.env` ne sert qu'à la génération d'avatar depuis une photo ; les rendus
-fonctionnent sans lui, sur les corps livrés avec le dépôt.
+fonctionnent sans lui, sur le corps livré avec le dépôt.
 
 ## Créer le vôtre
 
@@ -38,7 +38,7 @@ src/
 ├── kit/        ← le socle. Vous n'avez pas à l'ouvrir.
 ├── renders/    ← votre terrain de jeu. Un dossier = un rendu.
 └── studio/     ← les écrans : galerie, atelier, sujets.
-public/models/  ← les corps livrés avec le dépôt
+public/models/  ← les corps disponibles comme sujets
 backend/        ← le pipeline photo → avatar, hors de votre périmètre
 docs/           ← les guides
 ```
