@@ -62,8 +62,16 @@ export function FaceStep({ onCaptured, localFace }: FaceStepProps) {
       }
       landmarkerRef.current = landmarker;
 
-      video.srcObject = camera.stream;
-      await video.play().catch(() => {});
+      try {
+        video.srcObject = camera.stream;
+        // `play()` peut rejeter (politique d'autoplay) et ne renvoie même pas
+        // toujours une promesse. Sans ce garde, l'échec sortait de la fonction
+        // asynchrone sans que personne ne le rattrape.
+        await video.play()?.catch(() => {});
+      } catch {
+        if (!cancelled) setErreur("La caméra n'a pas pu démarrer dans cette page.");
+        return;
+      }
 
       const boucle = () => {
         frameId = requestAnimationFrame(boucle);
