@@ -60,19 +60,22 @@ async function estPresent(url: string): Promise<boolean> {
 }
 
 /**
- * Une URL d'objet par blob, pas par appel. `listSubjects` est appelée à chaque
+ * Une URL d'objet par avatar, pas par appel. `listSubjects` est appelée à chaque
  * montage d'écran : en créer une à chaque fois épinglerait autant de fois les
  * ~60 Mo de l'avatar en mémoire, sans jamais les relâcher.
  */
-let dernierBlob: Blob | null = null;
+let dateDeLUrl = 0;
 let derniereUrl = "";
 
-function urlDuSujetPersonnel(glb: Blob): string {
-  if (glb === dernierBlob) return derniereUrl;
+function urlDuSujetPersonnel(personnel: { glb: Blob; createdAt: number }): string {
+  // La clé est la date de création de l'enregistrement, jamais l'identité du
+  // Blob : IndexedDB en désérialise un nouveau à chaque lecture, donc un cache
+  // par identité ne toucherait jamais et fuirait une URL par appel.
+  if (personnel.createdAt === dateDeLUrl && derniereUrl) return derniereUrl;
 
   if (derniereUrl) URL.revokeObjectURL(derniereUrl);
-  dernierBlob = glb;
-  derniereUrl = URL.createObjectURL(glb);
+  dateDeLUrl = personnel.createdAt;
+  derniereUrl = URL.createObjectURL(personnel.glb);
 
   return derniereUrl;
 }
@@ -94,7 +97,7 @@ export async function listSubjects(): Promise<SubjectDescriptor[]> {
         {
           id: PERSONAL_SUBJECT_ID,
           label: "Le vôtre",
-          url: urlDuSujetPersonnel(personnel.glb),
+          url: urlDuSujetPersonnel(personnel),
           origin: "personnel",
           locked: false,
         },
