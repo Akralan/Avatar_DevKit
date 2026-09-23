@@ -1,4 +1,5 @@
 import { NavLink, Route, Routes } from "react-router";
+import { WorkshopPage } from "./studio/workshop-page";
 import { DebugFacePage } from "./studio/debug-face-page";
 
 export function App() {
@@ -16,7 +17,7 @@ export function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<p>Galerie des rendus</p>} />
-          <Route path="/render/:id" element={<p>Atelier</p>} />
+          <Route path="/render/:id" element={<WorkshopPage />} />
           <Route path="/sujets" element={<p>Sujets</p>} />
           <Route path="/debug/face" element={<DebugFacePage />} />
         </Routes>

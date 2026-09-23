@@ -85,6 +85,9 @@ export interface RenderModule<C = Record<string, unknown>> {
   title: string;
   author: string;
   description: string;
+  /** Fond derrière le canvas. Certains rendus sont pensés sur fond clair
+   *  (dot-matrix), d'autres sur fond sombre. Omis = le fond de l'application. */
+  background?: string;
   defaultConfig: C;
   controls: Control<C>[];
   actions?: RenderAction[];
