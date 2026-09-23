@@ -115,6 +115,23 @@ export class RevealRenderer {
     // Mouvement réduit : la chorégraphie saute directement à son état final.
     this.elapsedMs = reduceMotion ? REVEAL_DURATION_MS : this.elapsedMs + delta * 1000;
 
+    // La pose d'abord, la reprojection ensuite, l'image en dernier : la maille
+    // de départ se mesure en hauteurs de sujet, elle a donc besoin de la
+    // projection de cette frame-ci. L'interactivité est celle constatée à la
+    // frame précédente — elle ne dépend que du temps écoulé, jamais de la
+    // projection.
+    const pose = this.handoverRotation === null ? 0 : rotation - this.handoverRotation;
+    this.modelGroup.rotation.y = INITIAL_ROTATION + pose;
+    this.modelGroup.updateMatrixWorld();
+
+    projectSubject(
+      this.pass,
+      this.camera,
+      this.modelGroup.matrixWorld,
+      this.subject.size,
+      this.camera.aspect,
+    );
+
     const frame = resolveRevealFrame(this.elapsedMs, {
       widthPx: this.widthPx,
       subjectHeightPx: this.subjectHeightPx,
@@ -124,21 +141,6 @@ export class RevealRenderer {
     if (frame.interactive && this.handoverRotation === null) {
       this.handoverRotation = rotation;
     }
-
-    const pose =
-      this.handoverRotation === null ? 0 : rotation - this.handoverRotation;
-    this.modelGroup.rotation.y = INITIAL_ROTATION + pose;
-    this.modelGroup.updateMatrixWorld();
-
-    // Reprojeté avant de résoudre l'image : la maille de départ se mesure en
-    // hauteurs de sujet, elle a donc besoin de la pose de cette frame-ci.
-    projectSubject(
-      this.pass,
-      this.camera,
-      this.modelGroup.matrixWorld,
-      this.subject.size,
-      this.camera.aspect,
-    );
 
     this.discharges.setEnabled(this.effectsWanted && frame.finished && !reduceMotion);
     this.discharges.update(delta * 1000);
@@ -153,6 +155,7 @@ export class RevealRenderer {
     this.offscreen.dispose();
     disposeRevealPass(this.pass);
   }
+
 
   /** Hauteur écran du sujet en px CSS, telle que la dernière reprojection l'a vue. */
   private get subjectHeightPx(): number {

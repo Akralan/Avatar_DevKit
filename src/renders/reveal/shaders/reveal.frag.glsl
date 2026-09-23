@@ -1,5 +1,5 @@
 
-${NOISE_GLSL}
+#include noise.glsl;
 
 uniform sampler2D uNormalTexture;
 uniform sampler2D uDepthTexture;

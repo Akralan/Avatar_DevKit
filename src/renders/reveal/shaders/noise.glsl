@@ -1,31 +1,19 @@
-// Bruit procédural du fragment shader. Isolé de `shaders.ts` : c'est de la
-// bibliothèque, pas de la direction artistique — on l'utilise, on ne la règle
-// pas.
+// Bruit procédural de la révélation. Trois briques standard : simplex noise
+// (Ashima Arts, MIT), fBm, puis domain warping — c'est cette dernière étape,
+// et elle seule, qui transforme des taches en veines.
 //
-// Trois briques standard du rendu procédural, dans l'ordre où elles se
-// composent :
-//
-// 1. **Simplex noise 2D** — Ken Perlin (2001), portage GLSL de Stefan Gustavson
-//    et Ian McEwan (Ashima Arts, MIT). Successeur du bruit de Perlin classique :
-//    complexité en O(n²) au lieu de O(2ⁿ), pas d'artefact directionnel aligné
-//    sur la grille, gradient continu. C'est le bruit par défaut de l'industrie.
-// 2. **fBm** (fractional Brownian motion) — Mandelbrot & van Ness, popularisé
-//    en synthèse par Musgrave : somme d'octaves à lacunarité 2 et gain 0.5. Le
-//    spectre en 1/f est celui des textures naturelles, d'où la lecture
-//    « organique » plutôt que « mathématique ».
-// 3. **Domain warping** — Íñigo Quílez : évaluer le fBm en un point lui-même
-//    déplacé par un fBm. C'est cette étape, et elle seule, qui transforme des
-//    taches en veines et en volutes.
+// Extrait de `noise.ts`, où il vivait dans un gabarit TypeScript.
 
-/** Octaves du fBm. 2 suffisent ici : le grain est vu à travers une enveloppe
- *  étroite, les octaves suivantes coûtent sans se voir. */
-const FBM_OCTAVES = 2;
+// Octaves du fBm. 2 suffisent : le grain est vu à travers une enveloppe
+// étroite, les octaves suivantes coûtent sans se voir. La borne d'une boucle
+// doit être constante à la compilation en GLSL ES 1.00, d'où le #define.
+#define FBM_OCTAVES 2
 
-/** Déplacement du domaine, en unités de bruit. Au-delà de ~0.8, les volutes se
- *  replient sur elles-mêmes et le champ redevient du bruit. */
-const WARP_STRENGTH = 0.6;
+// Déplacement du domaine, en unités de bruit. Au-delà de ~0.8, les volutes se
+// replient sur elles-mêmes et le champ redevient du bruit.
+#define WARP_STRENGTH 0.6
 
-export const NOISE_GLSL = /* glsl */ `
+
 vec3 revealMod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec2 revealMod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec3 revealPermute(vec3 x) { return revealMod289(((x * 34.0) + 1.0) * x); }
@@ -78,7 +66,7 @@ float fbm(vec2 p) {
   float value = 0.0;
   float amplitude = 0.5;
 
-  for (int octave = 0; octave < ${FBM_OCTAVES}; octave++) {
+  for (int octave = 0; octave < FBM_OCTAVES; octave++) {
     value += amplitude * snoise(p);
     p *= 2.0;
     amplitude *= 0.5;
@@ -90,6 +78,5 @@ float fbm(vec2 p) {
 /** fBm à domaine déformé : des veines, là où le fBm nu ne donne que des taches. */
 float warpedFbm(vec2 p) {
   vec2 offset = vec2(fbm(p), fbm(p + vec2(5.2, 1.3)));
-  return fbm(p + ${WARP_STRENGTH} * offset);
+  return fbm(p + WARP_STRENGTH * offset);
 }
-`;
