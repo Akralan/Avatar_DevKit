@@ -1,1 +1,1 @@
-{"root":["./src/app.test.tsx","./src/app.tsx","./src/main.tsx","./src/setup-tests.ts","./src/kit/face/landmarker.test.ts","./src/kit/face/landmarker.ts","./src/studio/debug-face-page.tsx","./vite.config.ts"],"version":"5.9.3"}
+{"root":["./src/app.test.tsx","./src/app.tsx","./src/main.tsx","./src/setup-tests.ts","./src/kit/registry.test.ts","./src/kit/registry.ts","./src/kit/types.ts","./src/kit/face/landmarker.test.ts","./src/kit/face/landmarker.ts","./src/renders/wireframe/module.ts","./src/studio/debug-face-page.tsx","./vite.config.ts"],"version":"5.9.3"}
