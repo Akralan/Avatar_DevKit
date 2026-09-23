@@ -552,3 +552,16 @@ a.tile:hover {
 .subject-preview {
   background: #000;
 }
+
+/* Aperçu 3D du wizard : masque facial, puis avatar greffé. */
+.preview-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  text-align: center;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+}
