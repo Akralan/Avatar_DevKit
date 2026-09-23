@@ -20,3 +20,15 @@ import "fake-indexeddb/auto";
 let compteurBlob = 0;
 globalThis.URL.createObjectURL ??= () => `blob:devkit/${(compteurBlob += 1)}`;
 globalThis.URL.revokeObjectURL ??= () => {};
+
+// jsdom n'implémente pas `Blob.arrayBuffer()`. Les tests du masque facial
+// relisent le GLB qu'ils viennent de produire : sans ça, aucune vérification
+// de géométrie n'est possible.
+Blob.prototype.arrayBuffer ??= function (this: Blob): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(this);
+  });
+};
