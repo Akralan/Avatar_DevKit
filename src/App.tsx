@@ -1,0 +1,24 @@
+import { NavLink, Route, Routes } from "react-router";
+
+export function App() {
+  return (
+    <div className="app">
+      <nav className="app-nav">
+        <span className="brand">MyTwin Avatar DevKit</span>
+        {/* `end` : sans lui, le lien Rendus reste actif sur toutes les routes. */}
+        <NavLink to="/" end>
+          Rendus
+        </NavLink>
+        <NavLink to="/sujets">Sujets</NavLink>
+      </nav>
+
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<p>Galerie des rendus</p>} />
+          <Route path="/render/:id" element={<p>Atelier</p>} />
+          <Route path="/sujets" element={<p>Sujets</p>} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
