@@ -104,3 +104,17 @@ test("deux appels sur le même avatar réutilisent la même URL d'objet", async 
 
   expect(second).toBe(premier);
 });
+
+test("supprimer son avatar relâche vraiment la mémoire qu'il occupait", async () => {
+  // On supprime précisément pour récupérer de la place : garder l'URL d'objet
+  // épinglerait les ~60 Mo du GLB jusqu'au prochain rechargement de la page.
+  repondAvec("text/html");
+  await savePersonalSubject(new Blob(["glb"]), null);
+  await listSubjects();
+  const revoke = vi.spyOn(URL, "revokeObjectURL");
+
+  await deletePersonalSubject();
+  await listSubjects();
+
+  expect(revoke).toHaveBeenCalled();
+});

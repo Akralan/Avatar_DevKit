@@ -80,6 +80,14 @@ function urlDuSujetPersonnel(personnel: { glb: Blob; createdAt: number }): strin
   return derniereUrl;
 }
 
+function oublierSujetPersonnel(): void {
+  if (!derniereUrl) return;
+
+  URL.revokeObjectURL(derniereUrl);
+  derniereUrl = "";
+  dateDeLUrl = 0;
+}
+
 /**
  * Les sujets disponibles, dans l'ordre : ceux versionnés avec le dépôt, ceux
  * simplement posés sur la machine, puis celui que le contributeur a généré
@@ -92,6 +100,10 @@ export async function listSubjects(): Promise<SubjectDescriptor[]> {
   );
 
   const personnel = await getPersonalSubject();
+  // Plus d'avatar : on relâche l'URL qui l'épinglait. Supprimer sert
+  // précisément à récupérer de la place.
+  if (!personnel) oublierSujetPersonnel();
+
   const sien: SubjectDescriptor[] = personnel
     ? [
         {

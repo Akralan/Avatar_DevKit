@@ -89,6 +89,25 @@ adresse qui reproduit exactement ce que vous avez sous les yeux, sujet compris.
 « Copier la config » sort le JSON, prêt à coller dans `defaultConfig` quand un
 réglage est validé.
 
+## Générer votre propre corps
+
+Les rendus fonctionnent sur le corps livré avec le dépôt. Si vous voulez
+travailler sur le vôtre :
+
+```
+/sujets  →  « Générer »
+```
+
+Le parcours prend une photo (trois angles valent mieux qu'un), capture votre
+visage dans le navigateur, puis demande la greffe au backend. Comptez une minute
+de calcul. Le corps généré vit **sur votre machine**, dans IndexedDB : il n'est
+ni versionné ni envoyé ailleurs, et vous n'en avez qu'un.
+
+Le **mode test** de l'écran de génération n'appelle pas Meshy et ne consomme
+aucun crédit — utilisez-le pour mettre le parcours au point.
+
+Détail du pipeline : [docs/pipeline-avatar.md](docs/pipeline-avatar.md).
+
 ## Les guides
 
 | Fichier | Quand le lire |
