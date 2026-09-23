@@ -79,7 +79,7 @@ export type Control<C> =
   | { kind: "select"; key: keyof C; label: string; options: readonly string[] }
   | { kind: "group"; label: string; children: Control<C>[] };
 
-export interface RenderModule<C = Record<string, never>> {
+export interface RenderModule<C = Record<string, unknown>> {
   /** Doit être égal au nom du dossier. Le registre le vérifie. */
   id: string;
   title: string;
