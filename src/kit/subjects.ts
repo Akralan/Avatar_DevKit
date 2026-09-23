@@ -1,3 +1,5 @@
+import { getPersonalSubject, PERSONAL_SUBJECT_ID } from "./avatar/personal-subject";
+
 export interface SubjectDescriptor {
   id: string;
   label: string;
@@ -58,13 +60,46 @@ async function estPresent(url: string): Promise<boolean> {
 }
 
 /**
- * Asynchrone aussi par anticipation : le pipeline avatar y ajoutera
- * l'emplacement personnel, lu dans IndexedDB.
+ * Une URL d'objet par blob, pas par appel. `listSubjects` est appelée à chaque
+ * montage d'écran : en créer une à chaque fois épinglerait autant de fois les
+ * ~60 Mo de l'avatar en mémoire, sans jamais les relâcher.
+ */
+let dernierBlob: Blob | null = null;
+let derniereUrl = "";
+
+function urlDuSujetPersonnel(glb: Blob): string {
+  if (glb === dernierBlob) return derniereUrl;
+
+  if (derniereUrl) URL.revokeObjectURL(derniereUrl);
+  dernierBlob = glb;
+  derniereUrl = URL.createObjectURL(glb);
+
+  return derniereUrl;
+}
+
+/**
+ * Les sujets disponibles, dans l'ordre : ceux versionnés avec le dépôt, ceux
+ * simplement posés sur la machine, puis celui que le contributeur a généré
+ * depuis sa photo. Il vient en dernier parce qu'il n'existe pas toujours, et
+ * qu'un ordre qui bouge selon la présence d'un fichier serait déroutant.
  */
 export async function listSubjects(): Promise<SubjectDescriptor[]> {
   const presents = await Promise.all(
     OPTIONAL.map(async (subject) => ((await estPresent(subject.url)) ? subject : null)),
   );
 
-  return [...SHIPPED, ...presents.filter((subject) => subject !== null)];
+  const personnel = await getPersonalSubject();
+  const sien: SubjectDescriptor[] = personnel
+    ? [
+        {
+          id: PERSONAL_SUBJECT_ID,
+          label: "Le vôtre",
+          url: urlDuSujetPersonnel(personnel.glb),
+          origin: "personnel",
+          locked: false,
+        },
+      ]
+    : [];
+
+  return [...SHIPPED, ...presents.filter((subject) => subject !== null), ...sien];
 }

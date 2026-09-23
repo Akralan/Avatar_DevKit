@@ -51,3 +51,56 @@ test("un réseau muet ne fait pas disparaître le corps de référence", async (
 
   expect((await listSubjects()).map((subject) => subject.id)).toEqual(["male_body"]);
 });
+
+// ── Le sujet personnel, généré depuis une photo ──────────────────────────────
+
+const { deletePersonalSubject, savePersonalSubject } = await import(
+  "./avatar/personal-subject"
+);
+
+afterEach(async () => {
+  await deletePersonalSubject();
+});
+
+test("le sujet personnel rejoint la liste une fois généré, et lui seul est déverrouillé", async () => {
+  repondAvec("text/html");
+  await savePersonalSubject(new Blob(["glb"]), null);
+
+  const subjects = await listSubjects();
+  const personnel = subjects.find((subject) => subject.origin === "personnel");
+
+  expect(personnel?.id).toBe("personnel");
+  expect(personnel?.locked).toBe(false);
+  expect(subjects.filter((subject) => subject.locked)).toHaveLength(subjects.length - 1);
+});
+
+test("le sujet personnel vient en dernier, après les corps de référence", async () => {
+  repondAvec("text/html");
+  await savePersonalSubject(new Blob(["glb"]), null);
+
+  expect((await listSubjects()).at(-1)?.origin).toBe("personnel");
+});
+
+test("un corps non versionné présent cohabite avec le sujet personnel", async () => {
+  // Les trois sources doivent se composer : livré, optionnel présent, personnel.
+  repondAvec("model/gltf-binary");
+  await savePersonalSubject(new Blob(["glb"]), null);
+
+  expect((await listSubjects()).map((subject) => subject.id)).toEqual([
+    "male_body",
+    "rubens",
+    "personnel",
+  ]);
+});
+
+test("deux appels sur le même avatar réutilisent la même URL d'objet", async () => {
+  // Sans mémoïsation, chaque montage d'écran épinglerait à nouveau les ~60 Mo
+  // de l'avatar en mémoire, sans jamais les relâcher.
+  repondAvec("text/html");
+  await savePersonalSubject(new Blob(["glb"]), null);
+
+  const premier = (await listSubjects()).at(-1)!.url;
+  const second = (await listSubjects()).at(-1)!.url;
+
+  expect(second).toBe(premier);
+});
