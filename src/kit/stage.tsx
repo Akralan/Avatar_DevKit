@@ -32,6 +32,8 @@ export interface RenderStageHandle {
    * chemin entre les deux.
    */
   runAction(id: string): void;
+  /** Le canvas du rendu, pour en tirer une vignette de galerie. */
+  getCanvas(): HTMLCanvasElement | null;
 }
 
 interface RenderStageProps<C> {
@@ -63,6 +65,7 @@ export function RenderStage<C>({
         if (!action || !instance) return;
         action.run(instance as unknown as RenderInstance<unknown>);
       },
+      getCanvas: () => canvasRef.current,
     }),
     [module],
   );

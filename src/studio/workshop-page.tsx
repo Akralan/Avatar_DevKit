@@ -5,6 +5,7 @@ import { loadSubject } from "../kit/load-subject";
 import { RenderStage, type RenderStageHandle } from "../kit/stage";
 import { DEFAULT_SUBJECT_ID, listSubjects, type SubjectDescriptor } from "../kit/subjects";
 import { decodeConfig, encodeConfig } from "../kit/url-config";
+import { captureThumbnail, getThumbnail } from "../kit/thumbnails";
 import { WorkshopOverlay } from "./workshop-overlay";
 import type { Subject } from "../kit/types";
 
@@ -34,6 +35,22 @@ export function WorkshopPage() {
   useEffect(() => {
     void listSubjects().then(setSubjects);
   }, []);
+
+  // Une vignette se prend une fois le rendu installé, pas à la première frame :
+  // un rendu chorégraphié serait capturé sur son écran presque vide.
+  useEffect(() => {
+    if (!module || loaded.state !== "prêt") return;
+
+    const timer = setTimeout(() => {
+      void getThumbnail(module.id).then((existante) => {
+        const canvas = stageRef.current?.getCanvas();
+        if (existante || !canvas) return;
+        void captureThumbnail(module.id, canvas);
+      });
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [module, loaded.state]);
 
   useEffect(() => {
     if (!subjects.length) return;

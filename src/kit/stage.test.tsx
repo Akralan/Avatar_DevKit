@@ -2,6 +2,7 @@ import { createRef } from "react";
 import { act, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import type { RenderModule, RenderInstance, Subject } from "./types";
+import type { RenderStageHandle } from "./stage";
 
 // Le WebGLRenderer est remplacé : jsdom n'a pas de contexte WebGL, et ce qui
 // se teste ici est le cycle de vie que tient le kit, pas le rendu de three.
@@ -203,7 +204,7 @@ test("une action déclarée par le module atteint l'instance du rendu", () => {
     replay,
   } as unknown as RenderInstance<unknown>;
 
-  const ref = createRef<{ runAction(id: string): void }>();
+  const ref = createRef<RenderStageHandle>();
   render(
     <RenderStage
       ref={ref}
@@ -228,10 +229,17 @@ test("une action déclarée par le module atteint l'instance du rendu", () => {
 });
 
 test("une action inconnue est ignorée sans jeter", () => {
-  const ref = createRef<{ runAction(id: string): void }>();
+  const ref = createRef<RenderStageHandle>();
   render(
     <RenderStage ref={ref} module={fakeModule()} subject={fakeSubject()} config={{}} />,
   );
 
   expect(() => ref.current?.runAction("nexistepas")).not.toThrow();
+});
+
+test("le stage prête son canvas, pour que la galerie puisse en tirer une vignette", () => {
+  const ref = createRef<RenderStageHandle>();
+  render(<RenderStage ref={ref} module={fakeModule()} subject={fakeSubject()} config={{}} />);
+
+  expect(ref.current?.getCanvas()).toBe(document.querySelector("canvas"));
 });

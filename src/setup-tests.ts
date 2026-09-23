@@ -10,3 +10,7 @@ class InertObserver {
 
 globalThis.ResizeObserver ??= InertObserver as unknown as typeof ResizeObserver;
 globalThis.IntersectionObserver ??= InertObserver as unknown as typeof IntersectionObserver;
+
+// IndexedDB n'existe pas en jsdom : les vignettes et le sujet personnel du
+// contributeur s'y rangent, donc les tests en ont besoin pour de vrai.
+import "fake-indexeddb/auto";
