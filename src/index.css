@@ -645,3 +645,105 @@ a.tile:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* Parcours photo → avatar. */
+.wizard {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.wizard-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wizard-steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 8px;
+  border-top: 3px solid var(--line);
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.wizard-steps li.is-current {
+  border-top-color: var(--accent);
+}
+
+.wizard-steps li.is-current strong {
+  color: var(--accent);
+}
+
+.wizard-steps strong {
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.wizard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.wizard-panel > label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.wizard-progress {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.wizard-progress-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.wizard-progress-head strong {
+  color: var(--ink);
+}
+
+.wizard-bar {
+  height: 5px;
+  margin-top: 7px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.wizard-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 300ms ease;
+}
+
+.wizard-test {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.wizard-test input {
+  accent-color: var(--accent);
+}
