@@ -37,14 +37,17 @@ function interceptToBlob() {
   return appels;
 }
 
-test("le poster est un JPEG, pas une copie du GLB", async () => {
+test("le poster est une image à canal alpha, pas une copie du GLB", async () => {
+  // WebP et non JPEG : le rendu se fait sur un fond transparent, que le JPEG
+  // cuirait en noir faute d'alpha. Le poster doit se poser sur le fond que
+  // lui donne le CSS, quel que soit le thème.
   loadSubject.mockResolvedValue(sujetFactice());
   const types = interceptToBlob();
 
   const poster = await capturePoster(new Blob(["glb"]));
 
-  expect(types[0]).toBe("image/jpeg");
-  expect(poster?.type).toBe("image/jpeg");
+  expect(types[0]).toBe("image/webp");
+  expect(poster?.type).toBe("image/webp");
 });
 
 test("un GLB illisible ne fait pas échouer l'enregistrement de l'avatar", async () => {

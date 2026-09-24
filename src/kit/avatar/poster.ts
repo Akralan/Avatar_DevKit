@@ -3,7 +3,11 @@ import { frameCamera } from "../framing";
 import { loadSubject } from "../load-subject";
 
 const SIZE = 320;
-const FORMAT = "image/jpeg";
+// WebP et non JPEG : le rendu est fait sur un fond transparent, et le JPEG,
+// qui n'a pas d'alpha, le cuirait en noir. Le poster serait alors une tache
+// sombre dans une carte claire. En WebP il garde son alpha et se pose sur le
+// fond que lui donne le CSS, quel que soit le thème.
+const FORMAT = "image/webp";
 const QUALITY = 0.8;
 
 /**

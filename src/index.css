@@ -1,18 +1,57 @@
-/* Tokens du devkit. Chrome sombre et neutre : c'est le rendu qui doit être la
-   chose lumineuse à l'écran, pas l'interface autour. */
+/* Tokens du devkit — thème repris de mytwinlab.care, thème `v2` de
+   mytwin-health-landing/src/app/globals.css. Mêmes encres, mêmes surfaces,
+   même rampe de marque, mêmes polices : le devkit doit se lire comme une
+   page du site, pas comme l'outil d'à côté. Les valeurs sont copiées telles
+   quelles depuis la landing — quand elle bouge, c'est ici qu'on recopie. */
 :root {
-  --ink: #e8ecf2;
-  --ink-dim: #8b95a5;
-  --bg: #0e1116;
-  --bg-raised: #161b22;
-  --bg-sunken: #0a0d11;
-  --line: #262d38;
-  --accent: #79f0d1;
-  --accent-ink: #0e1116;
-  --danger: #f08a79;
+  /* ── Encres ── */
+  --ink: hsl(220 60% 15%);
+  --ink-dim: hsl(220 20% 46%);
+  --ink-subtle: hsl(220 15% 60%);
 
-  --radius: 10px;
+  /* ── Surfaces ── */
+  --bg: hsl(216 60% 97%);
+  --bg-raised: #ffffff;
+  --bg-sunken: hsl(216 50% 95%);
+  --line: hsl(216 30% 90%);
+
+  /* ── Rampe de marque, nommée par TON et non par usage : le CTA part pâle
+     au repos et monte d'un cran au survol, comme sur la landing. ── */
+  --brand-start: hsl(164 56% 84%);
+  --brand-end: hsl(198 75% 86%);
+  --brand-vivid-start: #79f0d1;
+  --brand-vivid-end: #41c4d9;
+  --brand-deep-start: #48eabf;
+  --brand-deep-end: #26b6c9;
+
+  /* ── Accent plein : le `primary` du site. Il tient en aplat, en bordure et
+     en `accent-color`, mais pas en petit texte sur blanc — d'où
+     `--accent-text`, le même ton poussé vers l'encre jusqu'au contraste. ── */
+  --accent: #52b9c9;
+  --accent-ink: #ffffff;
+  --accent-text: color-mix(in srgb, var(--accent) 62%, var(--ink));
+  --danger: #e27268;
+
+  /* ── Fond des scènes 3D. La landing pose son twin en `setClearColor(…, 0)`,
+     donc sur le fond clair de la page : même parti ici, avec un token à part
+     pour qu'un atelier qui aurait besoin de noir se règle en une ligne. ── */
+  --scene: hsl(216 50% 95%);
+
+  --radius: 16px;
+  --radius-sm: 10px;
   --gap: 12px;
+
+  /* ── Ombres du style guide (§5) : c'est elles qui portent l'élévation en
+     thème clair, la bordure ne fait plus que cerner. ── */
+  --shadow-soft: 0 4px 30px -8px hsl(220 60% 15% / 0.08);
+  --shadow-card: 0 8px 40px -12px hsl(220 60% 15% / 0.1);
+  --shadow-cta:
+    0 2px 14px hsl(160 65% 67% / 0.12), inset 0 1px 1px hsl(0 0% 100% / 0.3);
+
+  /* ── Manrope pour le corps, Plus Jakarta Sans pour les titres. Chargées
+     dans index.html ; la stack de repli tient si le réseau manque. ── */
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans", "Manrope", system-ui, sans-serif;
 }
 
 * {
@@ -29,9 +68,19 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Titres : Plus Jakarta Sans, serrée et grasse, comme les accroches du site. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 a {
@@ -59,10 +108,12 @@ select {
   padding: 14px 20px;
   border-bottom: 1px solid var(--line);
   background: var(--bg-raised);
+  box-shadow: var(--shadow-soft);
 }
 
 .app-nav .brand {
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-weight: 800;
   letter-spacing: -0.01em;
   margin-right: 8px;
 }
@@ -121,6 +172,7 @@ select {
   border-radius: var(--radius);
   border: 1px solid var(--line);
   background: var(--bg-raised);
+  box-shadow: var(--shadow-soft);
 }
 
 .debug-face-status[data-step="échec"] {
@@ -131,7 +183,7 @@ select {
 .debug-face-count {
   font-size: 22px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* Panneau de réglages généré depuis le schéma `controls` d'un module. */
@@ -174,7 +226,7 @@ select {
   height: 26px;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: none;
 }
 
@@ -186,8 +238,8 @@ select {
 .control-field select {
   background: var(--bg-sunken);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
 }
 
 .control-group {
@@ -263,8 +315,9 @@ select {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
-  backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--bg-raised) 88%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-card);
 }
 
 .overlay-head {
@@ -281,9 +334,9 @@ select {
 .overlay-actions button,
 .overlay-reopen {
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 999px;
   background: none;
-  padding: 4px 9px;
+  padding: 4px 11px;
   font-size: 11px;
   color: var(--ink-dim);
   cursor: pointer;
@@ -333,8 +386,8 @@ select {
 .subject-picker select {
   background: var(--bg-sunken);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 5px 7px;
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
 }
 
 /* Galeries — rendus et sujets partagent la même mise en page. */
@@ -374,12 +427,15 @@ select {
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-raised);
-  transition: border-color 150ms ease, transform 150ms ease;
+  box-shadow: var(--shadow-card);
+  transition: border-color 150ms ease, transform 150ms ease,
+    box-shadow 150ms ease;
 }
 
 a.tile:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-soft), var(--shadow-card);
 }
 
 .tile-image {
@@ -413,7 +469,7 @@ a.tile:hover {
   padding: 2px 7px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: var(--bg);
+  background: var(--bg-raised);
   color: var(--ink-dim);
 }
 
@@ -447,10 +503,10 @@ a.tile:hover {
 
 .tile-new code {
   font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
   background: var(--bg-sunken);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .tile-new span:last-child {
@@ -466,6 +522,7 @@ a.tile:hover {
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-raised);
+  box-shadow: var(--shadow-card);
 }
 
 .subject-preview {
@@ -484,7 +541,7 @@ a.tile:hover {
   padding: 2px 7px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: var(--bg);
+  background: var(--bg-raised);
   color: var(--ink-dim);
 }
 
@@ -500,14 +557,33 @@ a.tile:hover {
   color: var(--ink-dim);
 }
 
+/* Seul vrai CTA des galeries : il porte le pill de la marque, qui part
+   pale au repos et monte d'un cran sur la rampe au survol. */
 .subject-open {
   align-self: flex-start;
   margin-top: 4px;
   font-size: 11px;
-  padding: 4px 10px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  color: var(--accent);
+  font-weight: 600;
+  padding: 5px 14px;
+  border: none;
+  border-radius: 999px;
+  color: var(--ink);
+  background-image: linear-gradient(
+    to bottom right,
+    var(--brand-start),
+    var(--brand-end)
+  );
+  box-shadow: var(--shadow-cta);
+  transition: background-image 200ms ease, transform 200ms ease;
+}
+
+.subject-open:hover {
+  background-image: linear-gradient(
+    to bottom right,
+    var(--brand-vivid-start),
+    var(--brand-vivid-end)
+  );
+  transform: translateY(-1px);
 }
 
 .subject-preview img {
@@ -550,7 +626,7 @@ a.tile:hover {
 .workshop,
 .tile-image,
 .subject-preview {
-  background: #000;
+  background: var(--scene);
 }
 
 /* Aperçu 3D du wizard : masque facial, puis avatar greffé. */
@@ -629,9 +705,9 @@ a.tile:hover {
 
 .face-step button {
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 999px;
   background: none;
-  padding: 7px 14px;
+  padding: 7px 16px;
   color: var(--ink);
   cursor: pointer;
 }
@@ -680,7 +756,7 @@ a.tile:hover {
 }
 
 .wizard-steps li.is-current strong {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .wizard-steps strong {
@@ -696,6 +772,7 @@ a.tile:hover {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg-raised);
+  box-shadow: var(--shadow-card);
 }
 
 .wizard-panel > label {
@@ -732,7 +809,11 @@ a.tile:hover {
 .wizard-bar i {
   display: block;
   height: 100%;
-  background: var(--accent);
+  background-image: linear-gradient(
+    to right,
+    var(--brand-vivid-start),
+    var(--brand-vivid-end)
+  );
   transition: width 300ms ease;
 }
 
@@ -757,9 +838,9 @@ a.tile:hover {
 
 .subject-actions button {
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 999px;
   background: none;
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: 11px;
   color: var(--ink-dim);
   cursor: pointer;
@@ -778,7 +859,8 @@ a.tile:hover {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgb(0 0 0 / 0.6);
+  background: hsl(220 60% 15% / 0.4);
+  backdrop-filter: blur(4px);
 }
 
 .confirm {
@@ -787,6 +869,7 @@ a.tile:hover {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg-raised);
+  box-shadow: var(--shadow-card);
 }
 
 .confirm p {
@@ -801,9 +884,9 @@ a.tile:hover {
 
 .confirm-actions button {
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 999px;
   background: none;
-  padding: 6px 14px;
+  padding: 6px 16px;
   color: var(--ink);
   cursor: pointer;
 }
